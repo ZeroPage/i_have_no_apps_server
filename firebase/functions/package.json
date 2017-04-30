@@ -1,0 +1,14 @@
+{
+  "name": "zeropage-auth",
+  "version": "0.0.1",
+  "description": "Cloud Functions for Firebase to authenticate a member using ZeroPage API",
+  "dependencies": {
+    "firebase-admin": "^4.1.4",
+    "firebase-functions": "^0.5.4",
+    "express": "^4.15.2",
+    "body-parser": "^1.17.1",
+    "request": "^2.81.0",
+    "request-promise": "^4.2.0"
+  },
+  "private": true
+}
