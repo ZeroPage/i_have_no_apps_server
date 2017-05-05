@@ -60,3 +60,40 @@ exports.SetMember = functions.https.onRequest(function (request, response) {
             response.status(400).end();
         });
 })
+
+exports.Notification = functions.https.onRequest(function (request, response) {
+    var query = admin.database().ref('member');
+    var payload = {
+        notification: {
+            title: request.body.title,
+            body: request.body.content
+        }
+    };
+
+    console.log('Notification : title = ' + request.body.title + ', body = ' + request.body.content);
+    
+    query.once('value')
+         .then(function(memberListSnapshot) {
+             var tokens = getAllTokens(memberListSnapshot);
+
+             admin.messaging().sendToDevice(tokens, payload);
+             console.log('Sending notification is completed.');
+             response.status(200).end();
+         })
+         .catch(function (error) {
+             console.log('Notification failed.');
+             console.log(error);
+             response.status(400).end();
+         });
+})
+
+function getAllTokens(memberListSnapshot) {
+    var tokens = [];
+
+    memberListSnapshot.forEach(function (childSnapshot) {
+        var token = childSnapshot.child('fcmToken').val();
+        tokens.push(token);
+    });
+
+    return tokens;
+}
