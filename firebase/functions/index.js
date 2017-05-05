@@ -44,7 +44,8 @@ exports.Authenticate = functions.https.onRequest(function(appRequest, appRespons
 exports.SetMember = functions.https.onRequest(function (request, response) {
     var dataUri = 'member/' + request.body.username;
     var memberData = {
-        name: request.body.username
+        name: request.body.username,
+        fcmToken: request.body.token
     };
 
     admin.database().ref(dataUri).set(memberData)
