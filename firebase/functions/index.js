@@ -39,8 +39,6 @@ exports.SetMember = functions.https.onRequest(function (request, response) {
         });
 })
 
-var adminList = ['lumin']
-
 exports.Notification = functions.https.onRequest(function (request, response) {
     var query = admin.database().ref('member');
     var payload = {
@@ -49,27 +47,32 @@ exports.Notification = functions.https.onRequest(function (request, response) {
             body: request.body.content
         }
     };
-
+    
     console.log('Notification : title = ' + request.body.title + ', body = ' + request.body.content);
     
-    if (!adminList.contains(request.body.sender)) {
-        console.log('Access denied : sender = ' + request.body.sender);
-        response.status(403).end();
-        return;
-    }
+    query.child(request.body.sender)
+         .child('admin')
+         .once('value')
+         .then(function(adminAccessSnapshot) {
+             console.log('snapshot = ' + adminAccessSnapshot.val());
+             if (adminAccessSnapshot.val() === 0) {
+                 console.log('Access denied : sender = ' + request.body.sender);
+                 response.status(403).end();
+             } else {
+                query.once('value')
+                .then(function(memberListSnapshot) {
+                    var tokens = getAllTokens(memberListSnapshot);
 
-    query.once('value')
-         .then(function(memberListSnapshot) {
-             var tokens = getAllTokens(memberListSnapshot);
-
-             admin.messaging().sendToDevice(tokens, payload);
-             console.log('Sending notification is completed.');
-             response.status(200).end();
-         })
-         .catch(function (error) {
-             console.log('Notification failed.');
-             console.log(error);
-             response.status(400).end();
+                    admin.messaging().sendToDevice(tokens, payload);
+                    console.log('Sending notification is completed.');
+                    response.status(200).end();
+                })
+                .catch(function (error) {
+                    console.log('Notification failed.');
+                    console.log(error);
+                    response.status(400).end();
+                });
+             }
          });
 })
 
@@ -82,14 +85,4 @@ function getAllTokens(memberListSnapshot) {
     });
 
     return tokens;
-}
-
-Array.prototype.contains = function(obj) {
-    var index = this.length;
-    while (index--) {
-        if (this[index] === obj) {
-            return true;
-        }
-    }
-    return false;
 }
