@@ -61,6 +61,8 @@ exports.SetMember = functions.https.onRequest(function (request, response) {
         });
 })
 
+var adminList = ['lumin']
+
 exports.Notification = functions.https.onRequest(function (request, response) {
     var query = admin.database().ref('member');
     var payload = {
@@ -72,6 +74,12 @@ exports.Notification = functions.https.onRequest(function (request, response) {
 
     console.log('Notification : title = ' + request.body.title + ', body = ' + request.body.content);
     
+    if (!adminList.contains(request.body.sender)) {
+        console.log('Access denied : sender = ' + request.body.sender);
+        response.status(403).end();
+        return;
+    }
+
     query.once('value')
          .then(function(memberListSnapshot) {
              var tokens = getAllTokens(memberListSnapshot);
@@ -96,4 +104,14 @@ function getAllTokens(memberListSnapshot) {
     });
 
     return tokens;
+}
+
+Array.prototype.contains = function(obj) {
+    var index = this.length;
+    while (index--) {
+        if (this[index] === obj) {
+            return true;
+        }
+    }
+    return false;
 }
