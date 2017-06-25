@@ -54,7 +54,6 @@ exports.Notification = functions.https.onRequest(function (request, response) {
          .child('admin')
          .once('value')
          .then(function(adminAccessSnapshot) {
-             console.log('snapshot = ' + adminAccessSnapshot.val());
              if (adminAccessSnapshot.val() === 0) {
                  console.log('Access denied : sender = ' + request.body.sender);
                  response.status(403).end();
