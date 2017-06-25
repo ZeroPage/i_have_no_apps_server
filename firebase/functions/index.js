@@ -16,7 +16,7 @@ exports.SetMember = functions.https.onRequest(function (request, response) {
     var memberData = {
         name: request.body.username,
         fcmToken: request.body.token,
-        admin: 0
+        rank: 0
     };
 
     var dataReference = admin.database().ref(dataUri);
@@ -54,7 +54,7 @@ exports.Notification = functions.https.onRequest(function (request, response) {
          .child('admin')
          .once('value')
          .then(function(adminAccessSnapshot) {
-             if (adminAccessSnapshot.val() === 0) {
+             if (adminAccessSnapshot.val() != 2) {
                  console.log('Access denied : sender = ' + request.body.sender);
                  response.status(403).end();
              } else {
@@ -85,3 +85,28 @@ function getAllTokens(memberListSnapshot) {
 
     return tokens;
 }
+
+exports.GetMemberInfo = functions.https.onRequest(function (request, response) {
+    var dataUri = admin.database().ref('member/' + request.body.username);
+
+    dataUri.once('value')
+        .then(function (infoSnapshot) {
+            admin.database().ref('rank').child(infoSnapshot.child('rank').val())
+                .once('value')
+                .then(function (snapshot) {
+                    response.status(200).json({ 
+                        name: infoSnapshot.child('name').val(),
+                        fcmToken: infoSnapshot.child('fcmToken').val(),
+                        rank: snapshot.val()                
+                    });
+                })
+                .catch(function (error) {
+                    console.log('bad accessing rank.');
+                    response.status(404).end();
+                })
+        })
+        .catch(function (error) {
+            console.log('Error happened when querying a member data : memberName => ' + request.body.username);
+            response.status(400).end();
+        });
+}); 
