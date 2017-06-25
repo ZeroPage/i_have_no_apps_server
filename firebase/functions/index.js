@@ -15,10 +15,18 @@ exports.SetMember = functions.https.onRequest(function (request, response) {
     var dataUri = 'member/' + request.body.username;
     var memberData = {
         name: request.body.username,
-        fcmToken: request.body.token
+        fcmToken: request.body.token,
+        admin: 0
     };
 
-    admin.database().ref(dataUri).set(memberData)
+    var dataReference = admin.database().ref(dataUri);
+    if (dataReference != null) {
+        console.log('Already registered member : memberName = ' + memberData['name']);
+        dataReference.child('fcmToken').set(memberData['fcmToken']);
+        response.status(200).end();
+    }
+
+    dataReference.set(memberData)
         .then(function (snapshot) {
             console.log('Successfully saved the user. To = "' + dataUri + '"');
             console.log(memberData);
