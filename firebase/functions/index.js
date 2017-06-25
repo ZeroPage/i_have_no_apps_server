@@ -24,6 +24,7 @@ exports.SetMember = functions.https.onRequest(function (request, response) {
         console.log('Already registered member : memberName = ' + memberData['name']);
         dataReference.child('fcmToken').set(memberData['fcmToken']);
         response.status(200).end();
+        return;
     }
 
     dataReference.set(memberData)
@@ -51,7 +52,7 @@ exports.Notification = functions.https.onRequest(function (request, response) {
     console.log('Notification : title = ' + request.body.title + ', body = ' + request.body.content);
     
     query.child(request.body.sender)
-         .child('admin')
+         .child('rank')
          .once('value')
          .then(function(adminAccessSnapshot) {
              if (adminAccessSnapshot.val() != 2) {
